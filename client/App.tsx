@@ -9,55 +9,104 @@
  */
 
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, StyleSheet, Text, useColorScheme} from 'react-native';
-
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {
+  Button,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import instance from './helper/axiosInstance';
+import {List} from './types/list';
 
 const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-  const [list, setList] = useState();
+  const [list, setList] = useState<List[]>();
+  const [title, setTitle] = useState<string>();
+  const [error, setError] = useState(false);
 
   const getList = async () => {
     const response = await instance.get('/list');
-    setList(response.data);
+    setList(
+      response.data.reduce(
+        (p: [], c: any, i: number) => [
+          ...p,
+          {...c, heading: `This is header ${i + 1}`},
+        ],
+        [],
+      ),
+    );
   };
-
   console.log({list});
-
   useEffect(() => {
     getList();
     return () => {};
   }, []);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const filterList = list?.filter(x => x);
+  const onSubmit = () => {
+    if (!title?.trim()) {
+      setError(true);
+      return;
+    } else {
+      const newItem: List = {
+        id: list?.length + 1,
+        userId: list?.length + 1,
+        heading: title,
+        body: 'Body text',
+        title: 'Title block',
+      };
+      setList(arr => [newItem, ...arr]);
+      setTitle('');
+      setError(false);
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <Text>Hello world {list}</Text>
+    <SafeAreaView style={{display: 'flex'}}>
+      <Text>Hello world</Text>
+      <TextInput
+        value={title}
+        style={{
+          borderColor: error ? '#911' : '#999',
+          borderWidth: 2,
+          marginHorizontal: 5,
+          padding: 10,
+          borderRadius: 8,
+          marginVertical: 8,
+        }}
+        onChangeText={setTitle}
+      />
+      <Button title={'Submit'} onPress={onSubmit} />
+      <ScrollView>
+        {filterList?.map(x => (
+          <View style={{display: 'flex', flexDirection: 'row'}}>
+            <View
+              style={{
+                backgroundColor: '#aba',
+                flex: 1,
+                marginTop: 10,
+                padding: 10,
+                borderRadius: 10,
+                marginHorizontal: 5,
+              }}>
+              {/* <Text>Hello</Text> */}
+              <Text>{x.heading}</Text>
+              <Text>{x.title ?? 'Dummy title'}</Text>
+            </View>
+            {/* <View>
+              <Text>{x?.id}</Text>
+              <Text>{x?.userId}</Text>
+            </View>
+            <Text>{x?.title}</Text>
+            <Text>{x?.body}</Text> */}
+          </View>
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+// const styles = StyleSheet.create({});
 
 export default App;

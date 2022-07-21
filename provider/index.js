@@ -1,11 +1,12 @@
 const express = require("express");
+const list = require("./list");
 
 const app = express();
 
 const port = 3001;
 
 app.get("/list", (req, res) => {
-  res.send(`hello world ${port}`);
+  res.send(list);
 });
 
 app.listen(port, () => {
