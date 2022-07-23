@@ -15,6 +15,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableHighlight,
   View,
 } from 'react-native';
 import instance from './helper/axiosInstance';
@@ -37,69 +38,166 @@ const App = () => {
       ),
     );
   };
-  console.log({list});
   useEffect(() => {
     getList();
     return () => {};
   }, []);
 
   const filterList = list?.filter(x => x);
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!title?.trim()) {
       setError(true);
       return;
     } else {
+      console.log({list});
       const newItem: List = {
-        id: list?.length + 1,
-        userId: list?.length + 1,
-        heading: title,
+        name: title,
         body: 'Body text',
         title: 'Title block',
+        isDone: false,
       };
-      setList(arr => [newItem, ...arr]);
       setTitle('');
       setError(false);
+      const response = await instance.post('/list', newItem);
+      console.log(response.data, 'successpost');
+      setList(arr => [response.data, ...arr]);
+    }
+  };
+  const onDeleteUser = async user => {
+    const response = await instance.delete(`/lists/${user._id}`);
+    if (response.data.status) {
+      setList(list?.filter(x => user._id !== x?._id));
+    } else {
+      console.error('error deleting:', user.name);
+    }
+    // setList(response.data);
+  };
+  const onDone = async (user: List, index: number) => {
+    const response = await instance.put(`/lists/${user._id}`);
+    console.log(response);
+    if (response.data.status) {
+      setList([
+        ...list?.slice(0, index),
+        {...user, isDone: !user.isDone},
+        ...list?.slice(index + 1),
+      ]);
     }
   };
 
   return (
-    <SafeAreaView style={{display: 'flex'}}>
-      <Text>Hello world</Text>
-      <TextInput
-        value={title}
-        style={{
-          borderColor: error ? '#911' : '#999',
-          borderWidth: 2,
-          marginHorizontal: 5,
-          padding: 10,
-          borderRadius: 8,
-          marginVertical: 8,
-        }}
-        onChangeText={setTitle}
-      />
-      <Button title={'Submit'} onPress={onSubmit} />
-      <ScrollView>
-        {filterList?.map(x => (
-          <View style={{display: 'flex', flexDirection: 'row'}}>
+    <SafeAreaView style={{display: 'flex', flex: 1}}>
+      <Text style={{paddingHorizontal: 10}}>TODO</Text>
+      <View
+        style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+        <TextInput
+          value={title}
+          style={{
+            borderColor: error ? '#911' : '#999',
+            borderWidth: 2,
+            marginHorizontal: 5,
+            padding: 10,
+            borderRadius: 8,
+            marginVertical: 8,
+            flex: 1,
+          }}
+          onChangeText={setTitle}
+        />
+        <Button title={'Submit'} onPress={onSubmit} />
+      </View>
+      <View
+        style={{display: 'flex', flexDirection: 'row', marginHorizontal: 5}}>
+        <TouchableHighlight
+          style={{
+            borderColor: '#119',
+            borderWidth: 2,
+            padding: 10,
+            borderRadius: 9,
+            flex: 1,
+            alignItems: 'center',
+          }}>
+          <Text style={{color: '#222'}}>All</Text>
+        </TouchableHighlight>
+        <TouchableHighlight
+          style={{
+            borderColor: '#191',
+            borderWidth: 2,
+            padding: 10,
+            borderRadius: 9,
+            flex: 1,
+            marginHorizontal: 5,
+            alignItems: 'center',
+          }}>
+          <Text style={{color: '#222'}}>Completed</Text>
+        </TouchableHighlight>
+        <TouchableHighlight
+          style={{
+            borderColor: 'orange',
+            borderWidth: 2,
+            padding: 10,
+            borderRadius: 9,
+            flex: 1,
+            alignItems: 'center',
+          }}>
+          <Text style={{color: '#222'}}>Incomplete</Text>
+        </TouchableHighlight>
+      </View>
+      <ScrollView style={{display: 'flex'}}>
+        {filterList?.map((x, i) => (
+          <View key={x?._id} style={{display: 'flex', flexDirection: 'row'}}>
             <View
               style={{
-                backgroundColor: '#aba',
+                borderColor: '#555',
+                borderWidth: 2,
                 flex: 1,
                 marginTop: 10,
                 padding: 10,
                 borderRadius: 10,
                 marginHorizontal: 5,
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                opacity: x?.isDone ? 0.5 : 1,
               }}>
               {/* <Text>Hello</Text> */}
-              <Text>{x.heading}</Text>
-              <Text>{x.title ?? 'Dummy title'}</Text>
+              <View>
+                <Text
+                  style={{
+                    textDecorationLine: x?.isDone ? 'line-through' : 'none',
+                  }}>
+                  {x.name}
+                </Text>
+                <Text
+                  style={{
+                    textDecorationLine: x?.isDone ? 'line-through' : 'none',
+                  }}>
+                  {x.title ?? 'Dummy title'}
+                </Text>
+              </View>
+              <View style={{display: 'flex', flexDirection: 'row'}}>
+                <TouchableHighlight
+                  onPress={() => onDone(x, i)}
+                  style={{
+                    backgroundColor: 'orange',
+                    padding: 10,
+                    borderRadius: 9,
+                  }}>
+                  <Text style={{color: '#fff'}}>
+                    {x.isDone ? 'Undo' : 'Done'}
+                  </Text>
+                </TouchableHighlight>
+                <TouchableHighlight
+                  onPress={() => onDeleteUser(x)}
+                  style={{
+                    backgroundColor: '#922',
+                    padding: 10,
+                    borderRadius: 9,
+                    marginLeft: 10,
+                  }}>
+                  <Text style={{color: '#fff'}}>Delete</Text>
+                </TouchableHighlight>
+              </View>
             </View>
-            {/* <View>
-              <Text>{x?.id}</Text>
-              <Text>{x?.userId}</Text>
-            </View>
-            <Text>{x?.title}</Text>
-            <Text>{x?.body}</Text> */}
           </View>
         ))}
       </ScrollView>
