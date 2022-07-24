@@ -1,6 +1,7 @@
 export interface List {
-  title: string;
-  body: string;
   name: string;
+  title: string;
+  // _id: string;
+  body: string;
   isDone: boolean;
 }

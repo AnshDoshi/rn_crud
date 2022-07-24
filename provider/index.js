@@ -1,5 +1,4 @@
 const express = require("express");
-// const list = require("./list");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -16,32 +15,18 @@ mongoose.connect(
   }
 );
 
-const run = async () => {
-  // const user = new User({ name: "harsh", age: 21 });
-  // await user.save();
-  const user = await User.find().sort({ _id: -1 });
-  console.log(user);
-};
-// run();
-
 const app = express();
-
-let list = [];
-
 app.use(
   bodyParser.urlencoded({
     extended: true,
   })
 );
-
 app.use(express.json());
-// app.use(express.urlencoded());
 
 const port = 3001;
 
 app.get("/list", async (req, res) => {
   const allUser = await User.find().sort({ _id: -1 });
-  // console.log(allUser);
   res.send(allUser);
 });
 
@@ -49,14 +34,13 @@ app.post("/list", async (req, res) => {
   console.log(req.body, "req");
   const user = await User.create({
     ...req.body,
-    title: `${req.body.name}'s title`,
+    title: `${req?.body?.name}'s title`,
   });
-  // console.log(user, "user");
-  // list = await User.find();
+  // console.log(user);
   res.send(user);
 });
 
-app.put("/lists/:id", async (req, res) => {
+app.put("/list/:id", async (req, res) => {
   console.log(req.params.id);
   const findUser = await User.findById(req.params.id);
   const updatedUser = await User.updateOne(
@@ -67,7 +51,7 @@ app.put("/lists/:id", async (req, res) => {
   res.send({ message: "user updated", status: updatedUser.acknowledged });
 });
 
-app.delete("/lists/:id", async (req, res) => {
+app.delete("/list/:id", async (req, res) => {
   // console.log({ req: req.params.id }, "DELETE CALLED");
   const deletedUser = await User.find({ _id: req.params.id });
   if (deletedUser) {
@@ -77,10 +61,10 @@ app.delete("/lists/:id", async (req, res) => {
       status: true,
     });
   }
-  // console.log({ message: `${deletedUser[0].name} removed successfully` });
-  // const allUser = await User.find();
 });
 
 app.listen(port, () => {
   console.log(`App listinging to port ${port}`);
 });
+
+// app.use(express.urlencoded());

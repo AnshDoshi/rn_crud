@@ -1,13 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-
 import React, {useEffect, useState} from 'react';
 import {
   Button,
@@ -22,34 +12,29 @@ import instance from './helper/axiosInstance';
 import {List} from './types/list';
 
 const App = () => {
-  const [list, setList] = useState<List[]>();
+  const [list, setList] = useState<List[] | undefined>();
   const [title, setTitle] = useState<string>();
   const [error, setError] = useState(false);
+  const [status, setStatus] = useState<'All' | 'Completed' | 'Incomplete'>(
+    'All',
+  );
 
   const getList = async () => {
     const response = await instance.get('/list');
-    setList(
-      response.data.reduce(
-        (p: [], c: any, i: number) => [
-          ...p,
-          {...c, heading: `This is header ${i + 1}`},
-        ],
-        [],
-      ),
-    );
+    setList(response.data);
   };
   useEffect(() => {
     getList();
     return () => {};
   }, []);
 
-  const filterList = list?.filter(x => x);
   const onSubmit = async () => {
     if (!title?.trim()) {
       setError(true);
       return;
     } else {
-      console.log({list});
+      // setStatus('All');
+      console.log({title});
       const newItem: List = {
         name: title,
         body: 'Body text',
@@ -59,30 +44,53 @@ const App = () => {
       setTitle('');
       setError(false);
       const response = await instance.post('/list', newItem);
-      console.log(response.data, 'successpost');
       setList(arr => [response.data, ...arr]);
+      console.log(response.data, 'successpost');
     }
   };
-  const onDeleteUser = async user => {
-    const response = await instance.delete(`/lists/${user._id}`);
+  const onDeleteUser = async (user: List) => {
+    const response = await instance.delete(`/list/${user._id}`);
     if (response.data.status) {
       setList(list?.filter(x => user._id !== x?._id));
     } else {
       console.error('error deleting:', user.name);
     }
-    // setList(response.data);
   };
+
   const onDone = async (user: List, index: number) => {
-    const response = await instance.put(`/lists/${user._id}`);
+    const response = await instance.put(`/list/${user._id}`);
     console.log(response);
     if (response.data.status) {
-      setList([
-        ...list?.slice(0, index),
-        {...user, isDone: !user.isDone},
-        ...list?.slice(index + 1),
-      ]);
+      let newList: List[] = [...list];
+      newList[index].isDone = !newList[index].isDone;
+      setList(newList);
     }
   };
+
+  const onFilterClick = async (currentStatus: any) => {
+    console.log(currentStatus);
+    setStatus(currentStatus);
+    let response = await instance.get('/list');
+    let array: List[] = response.data;
+    switch (currentStatus) {
+      case 'All':
+        setList(array);
+        break;
+      case 'Completed':
+        setList(array.filter(x => x.isDone));
+        break;
+      case 'Incomplete':
+        setList(array.filter(x => !x.isDone));
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const isAll = status === 'All';
+  const isCompleted = status === 'Completed';
+  const isIncomplete = status === 'Incomplete';
 
   return (
     <SafeAreaView style={{display: 'flex', flex: 1}}>
@@ -107,42 +115,56 @@ const App = () => {
       <View
         style={{display: 'flex', flexDirection: 'row', marginHorizontal: 5}}>
         <TouchableHighlight
-          style={{
-            borderColor: '#119',
-            borderWidth: 2,
-            padding: 10,
-            borderRadius: 9,
-            flex: 1,
-            alignItems: 'center',
-          }}>
-          <Text style={{color: '#222'}}>All</Text>
+          onPress={() => onFilterClick('All')}
+          style={[
+            {
+              borderColor: '#119',
+              borderWidth: 2,
+              padding: 10,
+              borderRadius: 9,
+              flex: 1,
+              alignItems: 'center',
+            },
+            isAll && {backgroundColor: '#119'},
+          ]}>
+          <Text style={{color: isAll ? '#fff' : '#222'}}>All</Text>
         </TouchableHighlight>
         <TouchableHighlight
-          style={{
-            borderColor: '#191',
-            borderWidth: 2,
-            padding: 10,
-            borderRadius: 9,
-            flex: 1,
-            marginHorizontal: 5,
-            alignItems: 'center',
-          }}>
-          <Text style={{color: '#222'}}>Completed</Text>
+          onPress={() => onFilterClick('Completed')}
+          style={[
+            {
+              borderColor: '#191',
+              borderWidth: 2,
+              padding: 10,
+              borderRadius: 9,
+              flex: 1,
+              marginHorizontal: 5,
+              alignItems: 'center',
+            },
+            isCompleted && {backgroundColor: '#191'},
+          ]}>
+          <Text style={{color: isCompleted ? '#fff' : '#222'}}>Completed</Text>
         </TouchableHighlight>
         <TouchableHighlight
-          style={{
-            borderColor: 'orange',
-            borderWidth: 2,
-            padding: 10,
-            borderRadius: 9,
-            flex: 1,
-            alignItems: 'center',
-          }}>
-          <Text style={{color: '#222'}}>Incomplete</Text>
+          onPress={() => onFilterClick('Incomplete')}
+          style={[
+            {
+              borderColor: 'orange',
+              borderWidth: 2,
+              padding: 10,
+              borderRadius: 9,
+              flex: 1,
+              alignItems: 'center',
+            },
+            isIncomplete && {backgroundColor: 'orange'},
+          ]}>
+          <Text style={{color: isIncomplete ? '#fff' : '#222'}}>
+            Incomplete
+          </Text>
         </TouchableHighlight>
       </View>
       <ScrollView style={{display: 'flex'}}>
-        {filterList?.map((x, i) => (
+        {list?.map((x, i) => (
           <View key={x?._id} style={{display: 'flex', flexDirection: 'row'}}>
             <View
               style={{
@@ -178,7 +200,7 @@ const App = () => {
                 <TouchableHighlight
                   onPress={() => onDone(x, i)}
                   style={{
-                    backgroundColor: 'orange',
+                    backgroundColor: x?.isDone ? 'green' : 'orange',
                     padding: 10,
                     borderRadius: 9,
                   }}>
@@ -204,7 +226,5 @@ const App = () => {
     </SafeAreaView>
   );
 };
-
-// const styles = StyleSheet.create({});
 
 export default App;
