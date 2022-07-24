@@ -79,8 +79,8 @@ const App = () => {
       />
       <Button title={'Submit'} onPress={onSubmit} />
       <ScrollView>
-        {filterList?.map(x => (
-          <View style={{display: 'flex', flexDirection: 'row'}}>
+        {filterList?.map((x, i) => (
+          <View key={i} style={{display: 'flex', flexDirection: 'row'}}>
             <View
               style={{
                 backgroundColor: '#aba',
