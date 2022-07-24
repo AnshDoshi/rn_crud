@@ -1,0 +1,40 @@
+{/* <TouchableHighlight
+          onPress={() => onFilterClick('All')}
+          style={[
+            {
+              borderColor: colors.primary,
+              borderWidth: 2,
+              padding: 10,
+              borderRadius: 9,
+              flex: 1,
+              alignItems: 'center',
+            },
+            isAll && {backgroundColor: colors.primary},
+          ]}>
+          <Text style={{color: isAll ? colors.activeColor : colors.text}}>
+            All
+          </Text>
+        </TouchableHighlight> */}
+        {/* <TouchableHighlight
+                  onPress={() => onDeleteUser(x)}
+                  style={{
+                    backgroundColor: colors.delete,
+                    padding: 10,
+                    borderRadius: 9,
+                    marginLeft: 10,
+                  }}>
+                  <Text style={{color: colors.activeColor}}>Delete</Text>
+                </TouchableHighlight> */}
+                {/* <TouchableHighlight
+                  onPress={() => onDone(x, i)}
+                  style={{
+                    backgroundColor: x?.isDone
+                      ? colors.completed
+                      : colors.incomplete,
+                    padding: 10,
+                    borderRadius: 9,
+                  }}>
+                  <Text style={{color: colors.activeColor}}>
+                    {x.isDone ? 'Undo' : 'Done'}
+                  </Text>
+                </TouchableHighlight> */}
