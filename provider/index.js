@@ -48,7 +48,7 @@ app.put("/list/:id", async (req, res) => {
     { isDone: !findUser.isDone }
   );
   console.log(updatedUser, "findUser");
-  res.send({ message: "user updated", status: updatedUser.acknowledged });
+  res.send({ message: "task updated", status: updatedUser.acknowledged });
 });
 
 app.delete("/list/:id", async (req, res) => {
